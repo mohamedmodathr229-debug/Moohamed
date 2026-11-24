@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>دفتر الحسابات</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+    }
+    body.light {
+      background: #f3f5f7;
+      color: #1f2937;
+    }
+    header {
+      background: #020617;
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+    }
+    header h1 { margin: 0; font-size: 17px; }
+    .container { padding: 14px; max-width: 600px; margin: auto; }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    body.light .card { background: #fff; border-color: #e5e7eb; }
+    input, select, button {
+      width: 100%;
+      padding: 11px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #f1f5f9;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+    body.light input, body.light select {
+      background: #fff;
+      color: #1f2937;
+      border-color: #d1d5db;
+    }
+    button {
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .hdr-btns { display: flex; gap: 6px; }
+    .hdr-btns button {
+      width: auto;
+      margin-top: 0;
+      padding: 7px 11px;
+      font-size: 13px;
+      background: #334155;
+    }
+    .ghost-btn {
+      background: transparent;
+      border: 1px dashed #475569;
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 0;
+    }
+    body.light .ghost-btn {
+      border-color: #cbd5e1;
+      color: #64748b;
+    }
+    .green-btn { background: #16a34a; }
+    .wa-btn { background: #15803d; }
+    .red-btn { background: #dc2626; }
+    .amber-btn { background: #d97706; }
+    .small-btn {
+      width: auto;
+      margin-top: 0;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: #475569;
+    }
+    .le { color: #22c55e; font-weight: bold; }
+    .alay { color: #f87171; font-weight: bold; }
+    .zero { color: #94a3b8; font-weight: bold; }
+    body.light .le { color: #16a34a; }
+    body.light .alay { color: #dc2626; }
+    body.light .zero { color: #6b7280; }
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    body.light .summary { background: #f9fafb; border-color: #e5e7eb; }
+    .cust-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 4px;
+      border-bottom: 1px solid #334155;
+      cursor: pointer;
+    }
+    body.light .cust-row { border-bottom-color: #e5e7eb; }
+    .cust-row:last-child { border-bottom: none; }
+    .tx-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #334155;
+      gap: 8px;
+    }
+    body.light .tx-row { border-bottom-color: #e5e7eb; }
+    .tx-row:last-child { border-bottom: none; }
+    .filter-box { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .filter-box button {
+      width: auto;
+      margin-top: 0;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: #334155;
+    }
+    .filter-box button.active { background: #2563eb; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 id="topTitle">دفتر الحسابات</h1>
+    <div class="hdr-btns">
+      <button id="themeBtn" onclick="toggleTheme()">فاتح</button>
+      <button id="backBtn" class="hidden" onclick="goBack()">رجوع</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="homePage">
+      <div class="card">
+        <h3 style="margin-top:0;">ملخص الخزينة العام</h3>
+        <div class="summary">
+          <div><div>إجمالي له</div><div id="gLe" class="le">0</div></div>
+          <div><div>إجمالي عليه</div><div id="gAlay" class="alay">0</div></div>
+          <div><div>الصافي العام</div><div id="gNet" class="zero">0</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <button onclick="openCustomersPage()">قائمة الزباين (<span id="custCount">0</span>)</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">إضافة زبون جديد</h3>
+        <input type="text" id="cName" placeholder="اسم الزبون" />
+        <input type="tel" id="cPhone" placeholder="رقم التلفون / واتساب (اختياري)" />
+        <button onclick="addCustomer()">إضافة الزبون</button>
+      </div>
+
+      <div class="card">
+        <button id="secToggle" class="ghost-btn" onclick="toggleSec()">الأمان والنسخ الاحتياطي (إظهار)</button>
+        <div id="secBox" class="hidden" style="margin-top:10px;">
+          <button class="green-btn" onclick="exportJson()">تصدير نسخة احتياطية</button>
+          <button class="amber-btn" onclick="pickJsonFile()">استيراد نسخة احتياطية</button>
+          <input type="file" id="jsonInput" accept=".json,text/plain" class="hidden" onchange="importJsonFile(event)" />
+        </div>
+      </div>
+    </div>
+
+    <div id="customersPage" class="hidden">
+      <div class="card">
+        <h3 style="margin-top:0;">بحث وفلترة</h3>
+        <input type="text" id="searchBox" placeholder="ابحث بالاسم أو الرقم..." oninput="renderCustomers()" />
+        <div class="filter-box">
+          <button id="f-all" class="active" onclick="setFilter('all')">الكل</button>
+          <button id="f-alay" onclick="setFilter('alay')">عليهم قروش</button>
+          <button id="f-le" onclick="setFilter('le')">ليهم قروش</button>
+          <button id="f-zero" onclick="setFilter('zero')">خالص</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">الزباين</h3>
+        <div id="custList"></div>
+      </div>
+    </div>
+
+    <div id="detailPage" class="hidden">
+      <div class="card">
+        <h2 id="dName" style="margin:0 0 4px 0;"></h2>
+        <div id="dPhone" style="font-size:13px; color:#94a3b8; margin-bottom:10px;"></div>
+
+        <div class="summary" style="margin-bottom:10px;">
+          <div><div>له</div><div id="dLe" class="le">0</div></div>
+          <div><div>عليه</div><div id="dAlay" class="alay">0</div></div>
+          <div><div>الصافي</div><div id="dNet" class="zero">0</div></div>
+        </div>
+
+        <button class="wa-btn" onclick="sendWhatsApp()">إرسال كشف واتساب</button>
+        <button onclick="copyStatement()">نسخ الكشف</button>
+
+        <h4 style="margin:14px 0 4px 0;">إضافة معاملة</h4>
+        <input type="number" id="tAmount" placeholder="المبلغ" />
+        <select id="tType">
+          <option value="le">له (أخضر)</option>
+          <option value="alay">عليه (أحمر)</option>
+        </select>
+        <input type="text" id="tNote" placeholder="ملاحظة (اختياري)" />
+        <button class="green-btn" onclick="addTx()">حفظ المعاملة</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">المعاملات</h3>
+        <div id="txList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var KEY = 'hesabat_db_v4';
+    var TKEY = 'hesabat_theme_v4';
+    var page = 'home';
+    var curId = null;
+    var filterMode = 'all';
+    var secOpen = false;
+    var db = loadData();
+
+    function toggleSec() {
+      secOpen = !secOpen;
+      document.getElementById('secBox').className = secOpen ? '' : 'hidden';
+      document.getElementById('secToggle').innerText = secOpen
+        ? 'الأمان والنسخ الاحتياطي (إخفاء)'
+        : 'الأمان والنسخ الاحتياطي (إظهار)';
+    }
+
+    function loadData() {
+      try {
+        var raw = localStorage.getItem(KEY);
+        if (raw) {
+          var p = JSON.parse(raw);
+          if (p && p.customers && p.txs) return p;
+        }
+      } catch (e) {}
+      var init = {
+        customers: [{ id: 1, name: 'محمد مدثر', phone: '' }],
+        txs: [
+          { id: 101, cid: 1, amt: 100, type: 'alay', note: 'معاملة 1', dt: new Date().toLocaleDateString('ar-EG') },
+          { id: 102, cid: 1, amt: 200, type: 'le', note: 'معاملة 2', dt: new Date().toLocaleDateString('ar-EG') }
+        ]
+      };
+      saveData(init);
+      return init;
+    }
+
+    function saveData(d) {
+      try { localStorage.setItem(KEY, JSON.stringify(d || db)); } catch (e) {}
+    }
+
+    function initTheme() {
+      var t = 'dark';
+      try { t = localStorage.getItem(TKEY) || 'dark'; } catch (e) {}
+      if (t === 'light') {
+        document.body.classList.add('light');
+        document.getElementById('themeBtn').innerText = 'داكن';
+      } else {
+        document.body.classList.remove('light');
+        document.getElementById('themeBtn').innerText = 'فاتح';
+      }
+    }
+
+    function toggleTheme() {
+      var isLight = document.body.classList.toggle('light');
+      try { localStorage.setItem(TKEY, isLight ? 'light' : 'dark'); } catch (e) {}
+      document.getElementById('themeBtn').innerText = isLight ? 'داكن' : 'فاتح';
+    }
+
+    function getBal(cid) {
+      var le = 0, alay = 0, list = [];
+      for (var i = 0; i < db.txs.length; i++) {
+        if (db.txs[i].cid === cid) {
+          list.push(db.txs[i]);
+          if (db.txs[i].type === 'le') le += Number(db.txs[i].amt);
+          else alay += Number(db.txs[i].amt);
+        }
+      }
+      return { le: le, alay: alay, diff: le - alay, list: list };
+    }
+
+    function fmtNet(diff) {
+      if (diff > 0) return { txt: 'له ' + diff, cls: 'le' };
+      if (diff < 0) return { txt: 'عليه ' + Math.abs(diff), cls: 'alay' };
+      return { txt: '0 (خالص)', cls: 'zero' };
+    }
+
+    function renderHome() {
+      var le = 0, alay = 0;
+      for (var i = 0; i < db.txs.length; i++) {
+        if (db.txs[i].type === 'le') le += Number(db.txs[i].amt);
+        else alay += Number(db.txs[i].amt);
+      }
+      var net = fmtNet(le - alay);
+      document.getElementById('gLe').innerText = le;
+      document.getElementById('gAlay').innerText = alay;
+      var gNet = document.getElementById('gNet');
+      gNet.innerText = net.txt;
+      gNet.className = net.cls;
+      document.getElementById('custCount').innerText = db.customers.length;
+    }
+
+    function showPage(name, title, showBack) {
+      page = name;
+      document.getElementById('homePage').className = name === 'home' ? '' : 'hidden';
+      document.getElementById('customersPage').className = name === 'customers' ? '' : 'hidden';
+      document.getElementById('detailPage').className = name === 'detail' ? '' : 'hidden';
+      document.getElementById('topTitle').innerText = title;
+      document.getElementById('backBtn').className = showBack ? '' : 'hidden';
+    }
+
+    function openHome() {
+      curId = null;
+      showPage('home', 'دفتر الحسابات', false);
+      renderHome();
+    }
+
+    function openCustomersPage() {
+      curId = null;
+      showPage('customers', 'قائمة الزباين', true);
+      renderCustomers();
+    }
+
+    function openDetail(cid) {
+      var c = null;
+      for (var i = 0; i < db.customers.length; i++) {
+        if (db.customers[i].id === cid) { c = db.customers[i]; break; }
+      }
+      if (!c) return;
+      curId = cid;
+      showPage('detail', 'حساب: ' + c.name, true);
+      document.getElementById('dName').innerText = c.name;
+      document.getElementById('dPhone').innerText = c.phone ? ('رقم: ' + c.phone) : 'بدون رقم';
+      renderDetail();
+    }
+
+    function goBack() {
+      if (page === 'detail') openCustomersPage();
+      else openHome();
+    }
+
+    function addCustomer() {
+      var nEl = document.getElementById('cName');
+      var pEl = document.getElementById('cPhone');
+      var name = nEl.value.replace(/^\s+|\s+$/g, '');
+      if (!name) { alert('اكتب اسم الزبون'); return; }
+      db.customers.push({
+        id: new Date().getTime(),
+        name: name,
+        phone: pEl.value.replace(/^\s+|\s+$/g, '')
+      });
+      saveData();
+      nEl.value = '';
+      pEl.value = '';
+      renderHome();
+      alert('تمت إضافة الزبون');
+    }
+
+    function setFilter(mode) {
+      filterMode = mode;
+      var modes = ['all', 'alay', 'le', 'zero'];
+      for (var i = 0; i < modes.length; i++) {
+        document.getElementById('f-' + modes[i]).className = (modes[i] === mode) ? 'active' : '';
+      }
+      renderCustomers();
+    }
+
+    function renderCustomers() {
+      var q = (document.getElementById('searchBox').value || '').toLowerCase();
+      var html = '';
+      for (var i = 0; i < db.customers.length; i++) {
+        var c = db.customers[i];
+        var b = getBal(c.id);
+        var matchTxt = c.name.toLowerCase().indexOf(q) !== -1 || (c.phone || '').toLowerCase().indexOf(q) !== -1;
+        if (!matchTxt) continue;
+        if (filterMode === 'alay' && !(b.diff < 0)) continue;
+        if (filterMode === 'le' && !(b.diff > 0)) continue;
+        if (filterMode === 'zero' && b.diff !== 0) continue;
+
+        var net = fmtNet(b.diff);
+        html += '<div class="cust-row" onclick="openDetail(' + c.id + ')">' +
+                  '<div><strong>' + c.name + '</strong><br><small style="color:#94a3b8">' + (c.phone || 'بدون رقم') + '</small></div>' +
+                  '<div class="' + net.cls + '">' + net.txt + '</div>' +
+                '</div>';
+      }
+      document.getElementById('custList').innerHTML = html || '<p style="color:#94a3b8">لا يوجد زباين مطابقين</p>';
+    }
+
+    function addTx() {
+      var amt = Number(document.getElementById('tAmount').value);
+      var type = document.getElementById('tType').value;
+      var note = document.getElementById('tNote').value.replace(/^\s+|\s+$/g, '');
+      if (!amt || amt <= 0) { alert('أدخل مبلغاً صحيحاً'); return; }
+      db.txs.unshift({
+        id: new Date().getTime(),
+        cid: curId,
+        amt: amt,
+        type: type,
+        note: note,
+        dt: new Date().toLocaleDateString('ar-EG')
+      });
+      saveData();
+      document.getElementById('tAmount').value = '';
+      document.getElementById('tNote').value = '';
+      renderDetail();
+      renderHome();
+    }
+
+    function flipTx(tid) {
+      for (var i = 0; i < db.txs.length; i++) {
+        if (db.txs[i].id === tid) {
+          db.txs[i].type = (db.txs[i].type === 'le') ? 'alay' : 'le';
+          break;
+        }
+      }
+      saveData();
+      renderDetail();
+      renderHome();
+    }
+
+    function delTx(tid) {
+      if (!confirm('تأكيد حذف المعاملة؟')) return;
+      var next = [];
+      for (var i = 0; i < db.txs.length; i++) {
+        if (db.txs[i].id !== tid) next.push(db.txs[i]);
+      }
+      db.txs = next;
+      saveData();
+      renderDetail();
+      renderHome();
+    }
+
+    function renderDetail() {
+      var b = getBal(curId);
+      document.getElementById('dLe').innerText = b.le;
+      document.getElementById('dAlay').innerText = b.alay;
+      var net = fmtNet(b.diff);
+      var dNet = document.getElementById('dNet');
+      dNet.innerText = net.txt;
+      dNet.className = net.cls;
+
+      var html = '';
+      for (var i = 0; i < b.list.length; i++) {
+        var t = b.list[i];
+        var isLe = t.type === 'le';
+        html += '<div class="tx-row">' +
+                  '<div>' +
+                    '<span class="' + (isLe ? 'le' : 'alay') + '">' + (isLe ? 'له ' : 'عليه ') + t.amt + '</span>' +
+                    (t.note ? '<div><small>' + t.note + '</small></div>' : '') +
+                    '<div><small style="color:#94a3b8">' + t.dt + '</small></div>' +
+                  '</div>' +
+                  '<div style="display:flex;gap:6px;">' +
+                    '<button class="small-btn" onclick="flipTx(' + t.id + ')">تصحيح: ' + (isLe ? 'عليه' : 'له') + '</button>' +
+                    '<button class="small-btn red-btn" onclick="delTx(' + t.id + ')">حذف</button>' +
+                  '</div>' +
+                '</div>';
+      }
+      document.getElementById('txList').innerHTML = html || '<p style="color:#94a3b8">لا توجد معاملات</p>';
+    }
+
+    function buildMsg() {
+      var c = null;
+      for (var i = 0; i < db.customers.length; i++) {
+        if (db.customers[i].id === curId) { c = db.customers[i]; break; }
+      }
+      var b = getBal(curId);
+      var net = fmtNet(b.diff).txt;
+      var lines = [
+        'كشف حساب: ' + (c ? c.name : ''),
+        'إجمالي له: ' + b.le,
+        'إجمالي عليه: ' + b.alay,
+        'الصافي: ' + net,
+        '--- المعاملات ---'
+      ];
+      for (var j = 0; j < b.list.length; j++) {
+        var t = b.list[j];
+        lines.push((t.type === 'le' ? 'له ' : 'عليه ') + t.amt + (t.note ? ' (' + t.note + ')' : '') + ' - ' + t.dt);
+      }
+      return { msg: lines.join('\n'), phone: (c && c.phone) ? c.phone.replace(/[^0-9]/g, '') : '' };
+    }
+
+    function sendWhatsApp() {
+      var info = buildMsg();
+      var url = info.phone
+        ? ('https://wa.me/' + info.phone + '?text=' + encodeURIComponent(info.msg))
+        : ('https://wa.me/?text=' + encodeURIComponent(info.msg));
+      window.open(url, '_blank');
+    }
+
+    function copyStatement() {
+      var info = buildMsg();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(info.msg).then(function() { alert('تم النسخ'); });
+      } else {
+        prompt('انسخ الكشف:', info.msg);
+      }
+    }
+
+    function exportJson() {
+      try {
+        var txt = JSON.stringify(db);
+        var blob = new Blob([txt], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'hesabat-backup.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        alert('تم تصدير النسخة');
+      } catch (e) {
+        alert('تعذر التصدير في هذا المتصفح');
+      }
+    }
+
+    function pickJsonFile() {
+      document.getElementById('jsonInput').click();
+    }
+
+    function importJsonFile(ev) {
+      var f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) {
+        try {
+          var p = JSON.parse(e.target.result);
+          if (!p || !p.customers || !p.txs) { alert('ملف غير صالح'); return; }
+          if (!confirm('استبدال البيانات الحالية بالنسخة؟')) return;
+          db = { customers: p.customers, txs: p.txs };
+          saveData(db);
+          renderHome();
+          alert('تمت الاستعادة');
+        } catch (err) {
+          alert('خطأ في قراءة الملف');
+        }
+        ev.target.value = '';
+      };
+      r.readAsText(f);
+    }
+
+    initTheme();
+    openHome();
+  </script>
+</body>
+  </html>
+          
